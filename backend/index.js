@@ -102,4 +102,6 @@ const startServer = async () => {
 
 startServer();
 
-module.exports = { app, mongoose };
+module.exports = app;
+module.exports.app = app;
+module.exports.mongoose = mongoose;
