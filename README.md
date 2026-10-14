@@ -421,27 +421,6 @@ npm test
 
 ---
 
-## 🎓 Technical Viva Q&A Guide
-
-#### 1. Why do we hash passwords with bcrypt instead of encrypting them?
-> Encryption is two-way (reversible with a key). Hashing is one-way (irreversible). If a database is breached, encrypted passwords can be decrypted if the key is obtained, whereas bcrypt hashes cannot be decrypted. Bcrypt also includes a configurable work factor (salt rounds) that prevents rainbow table and brute-force attacks.
-
-#### 2. Why is the `HttpOnly` flag essential on cookies storing JWTs?
-> When a cookie has `httpOnly: true`, browser scripts cannot access it via `document.cookie`. This prevents Cross-Site Scripting (XSS) attacks from stealing the authentication token.
-
-#### 3. Why snapshot product name and price into the Order schema rather than referencing Product?
-> Product catalog data changes over time (prices rise, descriptions update, or products are discontinued). If an order only referenced the Product ID, a user's past invoice would display the *new* price rather than what they actually paid at the moment of checkout.
-
-#### 4. Why must `totalAmount` be calculated strictly on the backend?
-> The client cannot be trusted. If the frontend sends `{ totalAmount: 1 }`, a malicious actor could intercept and modify HTTP requests to purchase expensive inventory for pennies. The backend must query the database, look up current product prices, multiply by quantities, and establish the authoritative sum.
-
-#### 5. Why is HMAC SHA-256 signature verification mandatory in Razorpay?
-> When payment completes in the frontend modal, the browser receives payment identifiers. If the backend accepted `paymentSuccess: true` from the client, anyone could send a fake request to mark an order as paid. The HMAC SHA-256 signature proves that the response was signed using your secret key by Razorpay's servers.
-
-#### 6. Why should the cart be cleared only after payment verification, not order creation?
-> If the user opens the checkout modal but cancels or their payment fails, their cart should remain intact so they do not lose their selected items. Clearing the cart prematurely results in a poor user experience.
-
----
 
 ## 📄 License
 
