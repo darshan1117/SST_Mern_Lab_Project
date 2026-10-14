@@ -8,6 +8,7 @@ const AuthModal = () => {
     setShowAuthModal,
     authMode,
     setAuthMode,
+    setUser,
     fetchUser,
     showToast
   } = useApp();
@@ -17,6 +18,7 @@ const AuthModal = () => {
   const [phone, setPhone] = useState("");
   const [notRegistered, setNotRegistered] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   if (!showAuthModal) return null;
@@ -25,6 +27,7 @@ const AuthModal = () => {
     e.preventDefault();
     setNotRegistered(false);
     setPasswordError("");
+    setErrorMessage("");
     setLoading(true);
 
     if (authMode === "register") {
@@ -51,11 +54,11 @@ const AuthModal = () => {
           await fetchUser();
           setShowAuthModal(false);
         } else {
-          showToast(data.message || "Registration failed", "error");
+          setErrorMessage(data.message || "Registration failed. Please check your details.");
         }
       } catch (err) {
         console.error("Register error:", err);
-        showToast("Network error. Please try again.", "error");
+        setErrorMessage("Network error: Could not reach backend server. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -78,17 +81,31 @@ const AuthModal = () => {
           await fetchUser();
           setShowAuthModal(false);
         } else {
-          if (res.status === 404) setNotRegistered(true);
-          else if (res.status === 401) setPasswordError(data.message || "Incorrect password!");
-          showToast(data.message || "Invalid credentials", "error");
+          if (res.status === 404) {
+            setNotRegistered(true);
+            setErrorMessage("Account not registered. Please sign up first!");
+          } else if (res.status === 401) {
+            const msg = data.message || "Incorrect password. Please try again!";
+            setPasswordError(msg);
+            setErrorMessage(msg);
+          } else {
+            setErrorMessage(data.message || "Invalid credentials. Please try again.");
+          }
         }
       } catch (err) {
         console.error("Login error:", err);
-        showToast("Network error. Please try again.", "error");
+        setErrorMessage("Network error: Could not connect to API. Please try again.");
       } finally {
         setLoading(false);
       }
     }
+  };
+
+  const handleModeSwitch = (newMode) => {
+    setAuthMode(newMode);
+    setNotRegistered(false);
+    setPasswordError("");
+    setErrorMessage("");
   };
 
   return (
@@ -96,9 +113,9 @@ const AuthModal = () => {
       onClick={(e) => {
         if (e.target === e.currentTarget) setShowAuthModal(false);
       }}
-      className="fixed inset-0 w-full h-full z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in"
+      className="fixed inset-0 w-full h-full z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in"
     >
-      <div className="bg-white rounded-3xl w-full max-w-[390px] p-6 sm:p-7 space-y-4 shadow-2xl relative my-auto max-h-[90vh] overflow-y-auto animate-pop-in border border-slate-200">
+      <div className="bg-white text-[#262626] rounded-3xl w-full max-w-[390px] p-6 sm:p-7 space-y-4 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto animate-pop-in border border-slate-200">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl sm:text-2xl font-bold text-[#262626]">
@@ -106,28 +123,42 @@ const AuthModal = () => {
           </h2>
           <button
             onClick={() => setShowAuthModal(false)}
-            className="text-slate-400 hover:text-slate-800 text-xl font-bold p-1 rounded-full hover:bg-slate-100"
+            className="text-slate-400 hover:text-slate-800 text-xl font-bold p-1 rounded-full hover:bg-slate-100 transition-colors"
           >
             ✕
           </button>
         </div>
 
-        {/* Account Not Registered Prompt */}
-        {notRegistered && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs font-semibold flex items-center justify-between">
-            <span>Account not found. Please sign up!</span>
+        {/* IN-WINDOW RED ERROR ALERT BANNER */}
+        {notRegistered ? (
+          <div className="bg-red-50 border-2 border-red-500/80 text-red-800 p-3.5 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-sm animate-pop-in">
+            <div className="flex items-center space-x-2">
+              <span className="text-base shrink-0">⚠️</span>
+              <span>Account not registered. Please sign up!</span>
+            </div>
             <button
               type="button"
-              onClick={() => {
-                setNotRegistered(false);
-                setAuthMode("register");
-              }}
-              className="bg-[#ff4c24] text-white px-2.5 py-1 rounded-md text-[11px] font-bold hover:bg-[#e53e1b]"
+              onClick={() => handleModeSwitch("register")}
+              className="bg-[#ff4c24] text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-[#e53e1b] transition-all shrink-0 ml-2 shadow-xs"
             >
               Sign Up
             </button>
           </div>
-        )}
+        ) : errorMessage ? (
+          <div className="bg-red-50 border-2 border-red-500/80 text-red-800 p-3.5 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-sm animate-pop-in">
+            <div className="flex items-center space-x-2">
+              <span className="text-base shrink-0">⚠️</span>
+              <span>{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorMessage("")}
+              className="text-red-400 hover:text-red-700 font-bold ml-2 text-sm p-1"
+            >
+              ✕
+            </button>
+          </div>
+        ) : null}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,8 +168,11 @@ const AuthModal = () => {
                 type="text"
                 placeholder="Your name"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-3.5 py-2.5 border border-[#c5c5c5] rounded-md text-sm focus:outline-[#ff4c24]"
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  setErrorMessage("");
+                }}
+                className="w-full px-3.5 py-2.5 bg-white text-[#262626] border border-[#c5c5c5] rounded-xl text-sm focus:outline-none focus:border-[#ff4c24]"
                 required
               />
             </div>
@@ -149,8 +183,12 @@ const AuthModal = () => {
               type="email"
               placeholder="Your email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3.5 py-2.5 border border-[#c5c5c5] rounded-md text-sm focus:outline-[#ff4c24]"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setNotRegistered(false);
+                setErrorMessage("");
+              }}
+              className="w-full px-3.5 py-2.5 bg-white text-[#262626] border border-[#c5c5c5] rounded-xl text-sm focus:outline-none focus:border-[#ff4c24]"
               required
             />
           </div>
@@ -160,14 +198,22 @@ const AuthModal = () => {
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-3.5 py-2.5 border rounded-md text-sm focus:outline-[#ff4c24] ${
-                passwordError ? "border-rose-500" : "border-[#c5c5c5]"
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setPasswordError("");
+                setErrorMessage("");
+              }}
+              className={`w-full px-3.5 py-2.5 bg-white text-[#262626] border rounded-xl text-sm focus:outline-none transition-all ${
+                passwordError
+                  ? "border-red-500 ring-2 ring-red-400/30 bg-red-50/20"
+                  : "border-[#c5c5c5] focus:border-[#ff4c24]"
               }`}
               required
             />
             {passwordError && (
-              <p className="text-rose-500 text-xs mt-1 font-semibold">{passwordError}</p>
+              <p className="text-red-500 text-xs mt-1.5 font-semibold flex items-center gap-1 animate-fade-in">
+                <span>⚠️</span> {passwordError}
+              </p>
             )}
           </div>
 
@@ -177,8 +223,11 @@ const AuthModal = () => {
                 type="text"
                 placeholder="Phone number"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3.5 py-2.5 border border-[#c5c5c5] rounded-md text-sm focus:outline-[#ff4c24]"
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  setErrorMessage("");
+                }}
+                className="w-full px-3.5 py-2.5 bg-white text-[#262626] border border-[#c5c5c5] rounded-xl text-sm focus:outline-none focus:border-[#ff4c24]"
               />
             </div>
           )}
@@ -186,7 +235,7 @@ const AuthModal = () => {
           <button
             type="submit"
             disabled={loading}
-            className="tomato-btn w-full py-3 rounded-md font-medium text-sm shadow-md disabled:opacity-50"
+            className="tomato-btn w-full py-3 rounded-xl font-medium text-sm shadow-md disabled:opacity-50 transition-transform active:scale-98"
           >
             {loading ? "Please wait..." : authMode === "register" ? "Create account" : "Login"}
           </button>
@@ -203,7 +252,7 @@ const AuthModal = () => {
             <span>
               Already have an account?{" "}
               <button
-                onClick={() => setAuthMode("login")}
+                onClick={() => handleModeSwitch("login")}
                 className="text-[#ff4c24] font-bold hover:underline"
               >
                 Login here
@@ -213,7 +262,7 @@ const AuthModal = () => {
             <span>
               Create a new account?{" "}
               <button
-                onClick={() => setAuthMode("register")}
+                onClick={() => handleModeSwitch("register")}
                 className="text-[#ff4c24] font-bold hover:underline"
               >
                 Click here
