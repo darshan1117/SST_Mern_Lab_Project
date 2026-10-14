@@ -4,7 +4,14 @@ import { apiFetch, setAuthToken } from "../services/api";
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem("shopkart_user");
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [products, setProducts] = useState([]);
@@ -22,16 +29,25 @@ export const AppProvider = ({ children }) => {
   };
 
   const fetchUser = async () => {
+    const token = localStorage.getItem("shopkart_token");
+    if (!token) {
+      setUser(null);
+      localStorage.removeItem("shopkart_user");
+      return;
+    }
     try {
       const res = await apiFetch("/customers/me");
       if (res.ok) {
         const data = await res.json();
         setUser(data);
-      } else {
+        localStorage.setItem("shopkart_user", JSON.stringify(data));
+      } else if (res.status === 401) {
+        setAuthToken(null);
+        localStorage.removeItem("shopkart_user");
         setUser(null);
       }
     } catch (err) {
-      setUser(null);
+      console.error("fetchUser error:", err);
     }
   };
 
@@ -89,6 +105,7 @@ export const AppProvider = ({ children }) => {
       await apiFetch("/customers/logout", { method: "POST" });
     } catch (err) {}
     setAuthToken(null);
+    localStorage.removeItem("shopkart_user");
     setUser(null);
     setCart([]);
     setWishlist([]);

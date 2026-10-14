@@ -40,8 +40,16 @@ const AuthModal = () => {
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          showToast("Account created successfully! Please log in.");
-          setAuthMode("login");
+          if (data.token) {
+            setAuthToken(data.token);
+          }
+          if (data.customer) {
+            setUser(data.customer);
+            localStorage.setItem("shopkart_user", JSON.stringify(data.customer));
+          }
+          showToast("Account created & logged in! 🎉");
+          await fetchUser();
+          setShowAuthModal(false);
         } else {
           showToast(data.message || "Registration failed", "error");
         }
@@ -60,6 +68,10 @@ const AuthModal = () => {
         if (res.ok && data.success) {
           if (data.token) {
             setAuthToken(data.token);
+          }
+          if (data.customer) {
+            setUser(data.customer);
+            localStorage.setItem("shopkart_user", JSON.stringify(data.customer));
           }
           showToast("Logged in successfully!");
           await fetchUser();

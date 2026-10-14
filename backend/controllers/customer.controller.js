@@ -33,9 +33,12 @@ const registerCustomer = async (req, res) => {
       phone: phone.trim()
     });
 
+    const token = generateToken(res, customer._id);
+
     return res.status(201).json({
       success: true,
       message: "Customer registered successfully",
+      token,
       customer: {
         _id: customer._id,
         fullName: customer.fullName,
