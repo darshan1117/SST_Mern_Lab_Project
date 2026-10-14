@@ -7,9 +7,20 @@
 [![Razorpay](https://img.shields.io/badge/Payments-Razorpay%20Test%20Mode-0C2340?style=flat&logo=razorpay&logoColor=white)](https://razorpay.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS%203-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/Tests-12%2F12%20Passing-brightgreen?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/api/test.html)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-sst--mern--lab--project.vercel.app-blue?style=flat&logo=vercel)](https://sst-mern-lab-project.vercel.app/)
+[![API Status](https://img.shields.io/badge/API-shoppingkartbackend.vercel.app-000000?style=flat&logo=vercel)](https://shoppingkartbackend.vercel.app/)
 
 **ShopKart** is a production-grade, full-stack e-commerce web application engineered with the **MERN** stack (Node.js, Express.js, MongoDB/Mongoose, and React). The project demonstrates strict MVC backend architecture, end-to-end security practices, state synchronization, server-side business validation, and payment gateway integration.
+
+---
+
+## 🌐 Live Production Deployments
+
+| Component | Platform | Live URL | Status |
+|:---|:---|:---|:---|
+| 🛒 **Frontend Web App** | Vercel | [https://sst-mern-lab-project.vercel.app](https://sst-mern-lab-project.vercel.app/) | ![Live](https://img.shields.io/badge/Status-Live%20Online-brightgreen?style=flat) |
+| ⚡ **Backend REST API** | Vercel | [https://shoppingkartbackend.vercel.app](https://shoppingkartbackend.vercel.app/) | ![Live](https://img.shields.io/badge/Status-Live%20Online-brightgreen?style=flat) |
+| 🍃 **Database** | MongoDB Atlas | AWS Cloud Cluster (38 Products) | ![Connected](https://img.shields.io/badge/MongoDB-Atlas%20Active-47A248?style=flat) |
 
 ---
 
