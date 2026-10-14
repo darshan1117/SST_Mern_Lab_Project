@@ -38,7 +38,7 @@ const AuthModal = () => {
             phone: phone || "9876543210"
           })
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (res.ok && data.success) {
           if (data.token) {
             setAuthToken(data.token);
@@ -54,7 +54,8 @@ const AuthModal = () => {
           showToast(data.message || "Registration failed", "error");
         }
       } catch (err) {
-        showToast("Network error", "error");
+        console.error("Register error:", err);
+        showToast("Network error. Please try again.", "error");
       } finally {
         setLoading(false);
       }
@@ -64,7 +65,7 @@ const AuthModal = () => {
           method: "POST",
           body: JSON.stringify({ email, password })
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (res.ok && data.success) {
           if (data.token) {
             setAuthToken(data.token);
@@ -82,7 +83,8 @@ const AuthModal = () => {
           showToast(data.message || "Invalid credentials", "error");
         }
       } catch (err) {
-        showToast("Network error", "error");
+        console.error("Login error:", err);
+        showToast("Network error. Please try again.", "error");
       } finally {
         setLoading(false);
       }
@@ -90,8 +92,13 @@ const AuthModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl w-full max-w-[360px] sm:max-w-[400px] p-7 space-y-5 shadow-2xl relative animate-pop-in">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setShowAuthModal(false);
+      }}
+      className="fixed inset-0 w-full h-full z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in"
+    >
+      <div className="bg-white rounded-3xl w-full max-w-[390px] p-6 sm:p-7 space-y-4 shadow-2xl relative my-auto max-h-[90vh] overflow-y-auto animate-pop-in border border-slate-200">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl sm:text-2xl font-bold text-[#262626]">
@@ -99,7 +106,7 @@ const AuthModal = () => {
           </h2>
           <button
             onClick={() => setShowAuthModal(false)}
-            className="text-slate-400 hover:text-slate-800 text-xl font-bold"
+            className="text-slate-400 hover:text-slate-800 text-xl font-bold p-1 rounded-full hover:bg-slate-100"
           >
             ✕
           </button>

@@ -1,4 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_URL || "";
+const API_BASE =
+  import.meta.env.VITE_API_URL || "https://shoppingkartbackend.vercel.app";
 
 export const getApiUrl = (endpoint) => {
   if (!API_BASE) return endpoint;
