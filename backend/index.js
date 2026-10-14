@@ -6,6 +6,10 @@ const cors = require("cors");
 
 dotenv.config();
 
+let MONGODB_URI =
+  process.env.MONGODB_URI ||
+  "mongodb://darshanfleix_db_user:CnM3wL5LGxwMJr17@ac-arqsmdw-shard-00-00.xieu5j8.mongodb.net:27017,ac-arqsmdw-shard-00-01.xieu5j8.mongodb.net:27017,ac-arqsmdw-shard-00-02.xieu5j8.mongodb.net:27017/shopkart?ssl=true&replicaSet=atlas-t7c8mm-shard-0&authSource=admin&appName=Cluster0";
+
 const customerRoutes = require("./routes/customer.routes");
 const productRoutes = require("./routes/product.routes");
 const wishlistRoutes = require("./routes/wishlist.routes");
@@ -39,6 +43,33 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Serverless & Standalone Database Connection Middleware
+let dbConnectionPromise = null;
+
+const ensureDbConnection = async (req, res, next) => {
+  if (req.path === "/") return next();
+  if (mongoose.connection.readyState >= 1) return next();
+  try {
+    if (!dbConnectionPromise) {
+      dbConnectionPromise = mongoose.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 6000
+      });
+    }
+    await dbConnectionPromise;
+    next();
+  } catch (err) {
+    dbConnectionPromise = null;
+    console.error("MongoDB connection failed:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Database connection failed. Please ensure 0.0.0.0/0 is whitelisted in MongoDB Atlas Network Access.",
+      error: err.message
+    });
+  }
+};
+
+app.use(ensureDbConnection);
+
 // Base API Health Check
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -70,14 +101,10 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-let MONGODB_URI =
-  process.env.MONGODB_URI ||
-  "mongodb://darshanfleix_db_user:CnM3wL5LGxwMJr17@ac-arqsmdw-shard-00-00.xieu5j8.mongodb.net:27017,ac-arqsmdw-shard-00-01.xieu5j8.mongodb.net:27017,ac-arqsmdw-shard-00-02.xieu5j8.mongodb.net:27017/shopkart?ssl=true&replicaSet=atlas-t7c8mm-shard-0&authSource=admin&appName=Cluster0";
-
 let server;
 
 const startServer = async () => {
-  if (process.env.NODE_ENV !== "test") {
+  if (process.env.NODE_ENV !== "test" && !process.env.VERCEL) {
     try {
       await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
       console.log("Connected to MongoDB Atlas cluster successfully");
