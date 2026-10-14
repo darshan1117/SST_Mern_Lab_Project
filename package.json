@@ -1,22 +1,23 @@
 {
-  "name": "shopkart-auth-service",
+  "name": "shopkart-mern-project",
   "version": "1.0.0",
-  "description": "ShopKart Customer Authentication Service",
-  "main": "backend/index.js",
+  "description": "ShopKart Full-Stack MERN E-Commerce Application (Independent Backend & Frontend)",
   "scripts": {
     "start": "node backend/index.js",
-    "test": "cd backend && npm test"
+    "backend": "npm --prefix backend start",
+    "backend:dev": "npm --prefix backend run dev",
+    "frontend": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "test": "npm --prefix backend test"
   },
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cookie-parser": "^1.4.7",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.5"
-  },
-  "devDependencies": {
-    "mongodb-memory-server": "^10.1.3",
-    "supertest": "^7.0.0"
-  }
+  "keywords": [
+    "mern",
+    "react",
+    "express",
+    "mongodb",
+    "node",
+    "shopkart"
+  ],
+  "author": "",
+  "license": "ISC"
 }

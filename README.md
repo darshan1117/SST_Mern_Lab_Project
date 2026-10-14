@@ -110,7 +110,7 @@ flowchart TD
 
 ```text
 LAB_PROJECT/
-├── backend/
+├── backend/                         # Independent REST API Server
 │   ├── config/
 │   │   └── razorpay.js              # Razorpay SDK configuration
 │   ├── controllers/
@@ -120,13 +120,11 @@ LAB_PROJECT/
 │   │   ├── product.controller.js    # Product catalog retrieval & database seeding
 │   │   └── wishlist.controller.js   # Wishlist toggle and reference management
 │   ├── middlewares/
-│   │   └── auth.middleware.js       # JWT cookie verification middleware
+│   │   └── auth.middleware.js       # Dual JWT verification (HttpOnly cookie + Bearer header)
 │   ├── models/
 │   │   ├── customer.model.js        # Customer schema (bcrypt hook, wishlist, cart)
 │   │   ├── order.model.js           # Order schema (item snapshots, shipping, payment status)
 │   │   └── product.model.js         # Product schema (price, stock, category, rating)
-│   ├── public/
-│   │   └── index.html               # Single Page Application (React 18 + Tailwind CSS)
 │   ├── routes/
 │   │   ├── cart.routes.js           # /cart endpoints
 │   │   ├── customer.routes.js       # /customers & /users endpoints
@@ -134,18 +132,43 @@ LAB_PROJECT/
 │   │   ├── product.routes.js        # /products endpoints
 │   │   └── wishlist.routes.js       # /wishlist endpoints
 │   ├── utils/
-│   │   └── generateToken.js         # JWT generation & HttpOnly cookie configuration
+│   │   └── generateToken.js         # JWT generation & cross-origin cookie configuration
 │   ├── .env                         # Environment variables (MongoDB URI, JWT secret, Razorpay keys)
-│   ├── index.js                     # Express application entrypoint & static server
+│   ├── index.js                     # Express REST API entrypoint (Zero static file serving)
 │   ├── package.json                 # Backend dependencies & test scripts
 │   └── test.js                      # Automated test suite (node:test + supertest)
-├── frontend/
-│   └── src/
-│       └── context/
-│           ├── AuthContext.jsx          # React Authentication context provider
-│           └── CartWishlistContext.jsx  # Cart & Wishlist state management provider
-├── package.json                     # Root orchestrator package.json
-└── README.md                        # Project documentation
+├── frontend/                        # Independent React Client Application
+│   ├── public/                      # Static assets
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── AuthModal.jsx        # Pop-up Login / Sign-up with 404/401 edge-case alerts
+│   │   │   ├── ExploreCatalogue.jsx # Circular category filter badges
+│   │   │   ├── Footer.jsx           # Clean dark footer
+│   │   │   ├── HeroBanner.jsx       # Curved hero banner
+│   │   │   ├── Navbar.jsx           # Sticky navigation with cart counter & profile dropdown
+│   │   │   └── ProductDisplay.jsx   # Product card grid with floating [+][-] controls & wishlist heart
+│   │   ├── context/
+│   │   │   └── AppContext.jsx       # Global state for customer, cart, wishlist, orders & toast
+│   │   ├── pages/
+│   │   │   ├── Cart.jsx             # Cart table with promo code & totals
+│   │   │   ├── Checkout.jsx         # Delivery form & Razorpay order trigger
+│   │   │   ├── Home.jsx             # Main catalog landing page
+│   │   │   ├── Orders.jsx           # Customer order history
+│   │   │   ├── OrderSuccess.jsx     # Order confirmation screen
+│   │   │   └── Wishlist.jsx         # Saved items with one-click move-to-cart
+│   │   ├── services/
+│   │   │   └── api.js               # Centralized fetch helper (cross-domain cookies & Bearer tokens)
+│   │   ├── App.jsx                  # Main application router/view coordinator
+│   │   └── main.jsx                 # React DOM mount point
+│   ├── .env                         # Frontend local config (VITE_API_URL=http://localhost:5000)
+│   ├── .env.example                 # Environment template for production deployment
+│   ├── index.html                   # HTML template with Tailwind CDN & Outfit font
+│   ├── package.json                 # Frontend dependencies (React 18 + Vite)
+│   └── vite.config.js               # Vite config with API dev proxy
+├── .env.example                     # Root environment variable template
+├── .gitignore                       # Multi-tier gitignore (protects node_modules, dist, .env)
+├── package.json                     # Root orchestrator scripts (run backend & frontend)
+└── README.md                        # Complete project documentation
 ```
 
 ---
@@ -271,42 +294,81 @@ LAB_PROJECT/
 
 ---
 
-## 🚀 Getting Started & Installation
+## 🚀 Getting Started & Independent MERN Architecture
+
+ShopKart follows a **strictly decoupled MERN architecture**:
+- **Backend**: Runs strictly as an independent REST API returning JSON responses (no HTML or static file serving).
+- **Frontend**: Runs strictly as an independent React single-page application built with Vite and Tailwind CSS.
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18.0.0 or higher)
 - [npm](https://www.npmjs.com/) (v9.0.0 or higher)
 - Active Internet connection (for MongoDB Atlas connection)
 
-### 1. Clone & Install Dependencies
+---
+
+### 💻 Local Development Setup
+
+#### 1. Quick Start from Root
+You can install dependencies and run both servers directly from the root workspace:
 ```bash
-# Navigate to the project backend
+# Install backend dependencies
+cd backend && npm install && cd ..
+
+# Install frontend dependencies
+cd frontend && npm install && cd ..
+
+# Start backend REST API (port 5000)
+npm run backend
+
+# In a separate terminal, start frontend React Vite app (port 5173)
+npm run frontend
+```
+
+#### 2. Running the Backend Independently
+```bash
 cd backend
-
-# Install production and development dependencies
 npm install
+npm start          # Runs on http://localhost:5000
 ```
+- Health Check: `GET http://localhost:5000/` returns `{"success": true, "message": "ShopKart Backend REST API is running"}`.
+- Products: `GET http://localhost:5000/products` returns all 16 tech items.
 
-### 2. Configure Environment Variables
-Verify or edit `backend/.env`:
-```env
-PORT=5000
-MONGODB_URI=mongodb://darshanfleix_db_user:CnM3wL5LGxwMJr17@ac-arqsmdw-shard-00-00.xieu5j8.mongodb.net:27017,ac-arqsmdw-shard-00-01.xieu5j8.mongodb.net:27017,ac-arqsmdw-shard-00-02.xieu5j8.mongodb.net:27017/shopkart?ssl=true&replicaSet=atlas-t7c8mm-shard-0&authSource=admin&appName=Cluster0
-JWT_SECRET=shopkart_jwt_secret_key_2026_super_secure_lab01
-NODE_ENV=development
-RAZORPAY_KEY_ID=rzp_test_shopkart123
-RAZORPAY_KEY_SECRET=secret_shopkart123
-```
-
-### 3. Launch the Server
+#### 3. Running the Frontend Independently
 ```bash
-npm start
+cd frontend
+npm install
+npm run dev        # Runs on http://localhost:5173
 ```
-The server will start at:
-```text
-http://localhost:5000
-```
-Open this URL in any web browser to use the full shopping interface.
+- Open `http://localhost:5173` in your browser.
+- The frontend talks to the backend via `VITE_API_URL` (configured in `frontend/.env`).
+
+---
+
+### 🌐 Independent Production Deployment
+
+#### Deploying the Backend (e.g., Render / Railway / Fly.io)
+When deploying your backend to Render or another hosting platform:
+- **Root Directory**: `backend` (or point build/start to backend)
+- **Build Command**: `npm install`
+- **Start Command**: `node index.js` (or `npm start`)
+- **Environment Variables**:
+  - `PORT=5000` (or leave default assigned by Render)
+  - `MONGODB_URI=mongodb+srv://...`
+  - `JWT_SECRET=your_super_secret_jwt_key`
+  - `NODE_ENV=production`
+  - `CLIENT_URL=https://your-frontend-app.vercel.app` (for CORS)
+  - `RAZORPAY_KEY_ID=...`
+  - `RAZORPAY_KEY_SECRET=...`
+
+> Note: The backend will NEVER serve frontend HTML pages. Pushing your backend repository will deploy ONLY the REST API server.
+
+#### Deploying the Frontend (e.g., Vercel / Netlify / Cloudflare Pages)
+- **Root Directory**: `frontend`
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Environment Variables**:
+  - `VITE_API_URL=https://shopping-kart-backend-12mt.onrender.com` (Your deployed Render backend URL)
 
 ---
 

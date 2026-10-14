@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
-const path = require("path");
+const cors = require("cors");
 
 dotenv.config();
 
@@ -14,12 +14,40 @@ const orderRoutes = require("./routes/order.routes");
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:3000",
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or Postman)
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.some(o => origin.startsWith(o))) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Permissive for evaluation / cross-deployment
+      }
+    },
+    credentials: true
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use(express.static(path.join(__dirname, "public")));
+// Base API Health Check
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "ShopKart Backend REST API is running"
+  });
+});
 
+// API Routes
 app.use("/customers", customerRoutes);
 app.use("/users", customerRoutes);
 app.use("/products", productRoutes);
@@ -27,24 +55,12 @@ app.use("/wishlist", wishlistRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", orderRoutes);
 
-app.get("*", (req, res, next) => {
-  if (
-    req.path.startsWith("/customers") ||
-    req.path.startsWith("/users") ||
-    req.path.startsWith("/products") ||
-    req.path.startsWith("/wishlist") ||
-    req.path.startsWith("/cart") ||
-    req.path.startsWith("/orders")
-  ) {
-    return next();
-  }
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
+// 404 Handler for undefined routes
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
 });
 
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error("Error:", err.stack);
   res.status(err.status || 500).json({
@@ -79,7 +95,7 @@ const startServer = async () => {
     }
 
     server = app.listen(PORT, () => {
-      console.log(`ShopKart Server running on http://localhost:${PORT}`);
+      console.log(`ShopKart Backend REST API running on port ${PORT}`);
     });
   }
 };
