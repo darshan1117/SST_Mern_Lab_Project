@@ -1,6 +1,6 @@
 {
   "name": "shopkart-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "ShopKart Customer Authentication Service Backend",
   "main": "index.js",
   "scripts": {

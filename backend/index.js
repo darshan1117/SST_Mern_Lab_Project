@@ -94,7 +94,7 @@ const startServer = async () => {
       }
     }
 
-    server = app.listen(PORT, () => {
+    server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`ShopKart Backend REST API running on port ${PORT}`);
     });
   }
